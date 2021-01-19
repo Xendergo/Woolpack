@@ -1,0 +1,5 @@
+{
+  "write_location": "testOut.sc",
+  "entry": "./testSrc/test.sc",
+  "autoreload": "./testSrc"
+}
