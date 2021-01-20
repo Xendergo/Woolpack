@@ -45,6 +45,7 @@ namespace Woolpack
 
             if (!File.Exists(config.entry)) {
                 Console.WriteLine("Entry file doesn't exist");
+                return;
             }
 
             BundleFile bundler = new BundleFile() { config = config };

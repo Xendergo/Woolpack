@@ -8,22 +8,26 @@ class BundleFile {
   FileSystemWatcher watcher;
   public void InitListener() {
     if (config.autoreload != "") {
-      // Watch for when a file changes if autoreload is set
-      watcher = new FileSystemWatcher();
-      watcher.Path = config.autoreload;
+      try {
+        // Watch for when a file changes if autoreload is set
+        watcher = new FileSystemWatcher();
+        watcher.Path = config.autoreload;
 
-      watcher.NotifyFilter = NotifyFilters.LastWrite;
+        watcher.NotifyFilter = NotifyFilters.LastWrite;
 
-      watcher.Changed += (a, b) => {update();};
+        watcher.Changed += (a, b) => {update();};
 
-      watcher.EnableRaisingEvents = true;
+        watcher.EnableRaisingEvents = true;
+      } catch {
+        Console.WriteLine("Error watching autoreload folder, are you sure the folder given exists?");
+      }
     }
   }
 
   public void update() {
     Console.WriteLine("Bundling scarpet scripts");
 
-    ParseFile.imported = new List<string>();
+    ParseFile.imported = new List<string>() {config.entry};
 
     string toWrite;
     // Wait for the file to finish being written to
@@ -35,6 +39,7 @@ class BundleFile {
     // Wait for the file to be available for writing
     while (!IsFileReady(config.write_location)) ;
     using (StreamWriter sw = new StreamWriter(config.write_location)) {
+      Console.WriteLine("Writing");
       sw.Write(toWrite); // Write the file
     }
   }

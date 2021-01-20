@@ -1,3 +1,3 @@
-import('./testSrc/debug.sc');
+import('./example/debug.sc');
 
-debug({'x' -> 'y', 'z', 'a'});
+debug({'x' -> 'y', 'z' -> 'a'});

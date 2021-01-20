@@ -32,7 +32,7 @@ class ParseScarpet {
 
         args.Add(arg);
 
-        // If this isn't the last argument, get rid of all the spaces
+        // If there are spaces ahead, get rid of them
         if (file[pos] != ')') {
           pos++;
           while (file[pos] == ' ') {
@@ -43,6 +43,7 @@ class ParseScarpet {
 
       f.args = args.ToArray();
 
+      // Get rid of any semicolons
       if (file[pos+1] == ';') {
         pos++;
       }
