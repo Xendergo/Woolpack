@@ -8,6 +8,8 @@ You can use the import function to essentially copy/paste code from one file to 
 
 Example: `import('./debug.sc');`
 
+I am planing to add a bunch more in the future, so yeah
+
 ## How to use
 In the folder you want to write scarpet in, create a file named `woolpack_config.json`. In there, you can set what the entry file is, what file to write to, and what folder to watch to automatically reload.
 
@@ -28,3 +30,8 @@ Example `woolpack_config.json`:
   "autoreload": "./"
 }
 ```
+
+## How to install
+1. Go to the releases page and download the release for your OS
+2. Unzip the folder and add it to PATH
+3. To start it, cd to the folder and run `woolpack`. Import statements and paths in the config file are relative to where you cd'd, and the config file must be in the folder you cd'd to
