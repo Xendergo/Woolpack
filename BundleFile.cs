@@ -37,7 +37,7 @@ class BundleFile {
     }
 
     // Wait for the file to be available for writing
-    while (!IsFileReady(config.write_location)) ;
+    while (!IsFileReady(config.write_location) && File.Exists(config.write_location)) ;
     using (StreamWriter sw = new StreamWriter(config.write_location)) {
       Console.WriteLine("Writing");
       sw.Write(toWrite); // Write the file

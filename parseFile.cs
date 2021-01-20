@@ -6,7 +6,6 @@ using System.Linq;
 class ParseFile {
   public List<string> imported = new List<string>();
   public string ParseImports(string file) {
-    Console.WriteLine("imports");
     string newFile = file;
     // Find all places where the import function is called
     List<ScarpetFunction> funcs = ParseScarpet.FindFunctions(file, "import");
@@ -53,8 +52,6 @@ class ParseFile {
       importedFile = ParseImports(sr.ReadToEnd());
     }
     
-
-
     // Replace the import statement with what was read
     return file.Remove(f.startPos, f.endPos-f.startPos).Insert(f.startPos, importedFile);
   }
