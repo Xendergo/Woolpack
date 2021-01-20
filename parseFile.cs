@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System;
+using System.Net;
 using System.IO;
 using System.Linq;
 
@@ -39,18 +40,35 @@ class ParseFile {
       return file.Remove(f.startPos, f.endPos-f.startPos);
     }
 
-    // Check if the imported file exists
-    if (!File.Exists(filePath)) {
-      Console.WriteLine("File '"+filePath+"' doesn't exist  Line "+LineNumber(file, f.startPos));
-      System.Environment.Exit(0);
+    string importedFile = "";
+
+    // If it's not a valid url, it will catch and read it as a file
+    try {
+      // https://stackoverflow.com/questions/27108264/how-to-properly-make-a-http-web-get-request
+      HttpWebRequest request = (HttpWebRequest)WebRequest.Create(filePath);
+      request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+      using(HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+      using(Stream stream = response.GetResponseStream())
+      using(StreamReader reader = new StreamReader(stream))
+      {
+          importedFile = reader.ReadToEnd();
+      }
+    } catch {
+      // Check if the imported file exists
+      if (!File.Exists(filePath)) {
+        Console.WriteLine("File '"+filePath+"' doesn't exist  Line "+LineNumber(file, f.startPos));
+        System.Environment.Exit(0);
+      }
+
+      // Read the imported file
+      while (!BundleFile.IsFileReady(filePath)) ;
+      using(StreamReader sr = new StreamReader(filePath)) {
+        importedFile = sr.ReadToEnd();
+      }
     }
 
-    string importedFile;
-    // Read the imported file & recursively process it's imports
-    while (!BundleFile.IsFileReady(filePath)) ;
-    using(StreamReader sr = new StreamReader(filePath)) {
-      importedFile = ParseImports(sr.ReadToEnd());
-    }
+    // Recursively parse the file's imports
+    importedFile = ParseImports(importedFile);
     
     // Replace the import statement with what was read
     return file.Remove(f.startPos, f.endPos-f.startPos).Insert(f.startPos, importedFile);

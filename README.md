@@ -4,9 +4,13 @@ A program like [Webpack](https://webpack.js.org/) or [Rollup](https://rollupjs.o
 ## Features
 The idea is that you can write scarpet in multiple files for nicer code and distribute it as one file so people won't have to download lots of files.
 
-You can use the import function to essentially copy/paste code from one file to another. Circular dependencies are ignored. Unlike in native scarpet, the import function must be a file path. Importing individual symbols is not supported *yet*, and an import function with multiple arguments given will be ignored
+You can use the import function to essentially copy/paste code from one file to another. Circular dependencies are ignored. Unlike in native scarpet, the import function must be a file path. You can also import stuff by giving an address to a website. Importing individual symbols is not supported *yet*, and an import function with multiple arguments given will be ignored
 
-Example: `import('./debug.sc');`
+Examples:
+
+`import('./debug.sc');`
+
+`import('https://raw.githubusercontent.com/gnembon/scarpet/master/programs/fundamentals/math.sc');`
 
 I am planing to add a bunch more in the future, so yeah
 
@@ -34,4 +38,4 @@ Example `woolpack_config.json`:
 ## How to install
 1. Go to the releases page and download the release for your OS
 2. Unzip the folder and add it to PATH
-3. To start it, cd to the folder and run `woolpack`. Import statements and paths in the config file are relative to where you cd'd, and the config file must be in the folder you cd'd to
+3. To start it, open command line or terminal and cd to the folder you want to start your project in, and run `woolpack`. Paths in the config file and in import statements are relative to where you cd'd. The config file must be in the folder you cd'd to
