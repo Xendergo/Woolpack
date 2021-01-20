@@ -48,7 +48,8 @@ class ParseFile {
 
     string importedFile;
     // Read the imported file & recursively process it's imports
-    using(StreamReader sr = new StreamReader(File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read))) {
+    while (!BundleFile.IsFileReady(filePath)) ;
+    using(StreamReader sr = new StreamReader(filePath)) {
       importedFile = ParseImports(sr.ReadToEnd());
     }
     

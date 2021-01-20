@@ -1,10 +1,11 @@
 using System.Collections.Generic;
-using System;
+using System.Linq;
 class ParseScarpet {
   public static List<ScarpetFunction> FindFunctions(string file, string name) {
     List<ScarpetFunction> ret = new List<ScarpetFunction>();
     // Find all instances of the function being called
-    List<int> instances = SearchString(file, name+"(");
+    List<int> comments = SearchString(file, "//");
+    List<int> instances = SearchString(file, name+"(").Where(v => !CommentedOut(file, comments, v)).ToList();
 
     // Loop through all the instances
     for (int i = 0; i < instances.Count; i++) {
@@ -54,6 +55,20 @@ class ParseScarpet {
     }
 
     return ret;
+  }
+
+  static bool CommentedOut(string file, List<int> comments, int pos) {
+    for (int i = 0; i < comments.Count; i++) {
+      if (comments[i] > pos) return false;
+      if (LineNumber(file, comments[i]) == LineNumber(file, comments[i])) return true;
+    }
+
+    return false;
+  }
+
+  static int LineNumber(string str, int pos) {
+    // https://stackoverflow.com/questions/7255743/what-is-simpliest-way-to-get-line-number-from-char-position-in-string
+    return str.Take(pos).Count(c => c == '\n') + 1;
   }
 
   static List<int> SearchString(string str, string searchFor) {
