@@ -6,19 +6,17 @@ using System.Linq;
 
 class ParseFile {
   public List<string> imported = new List<string>();
-  public string ParseImports(string file) {
-    string newFile = file;
+  public Script ParseImports(Script file) {
+    int moveBackwards = 0;
+    Script newFile = file;
     // Find all places where the import function is called
-    List<ScarpetFunction> funcs = ParseScarpet.FindFunctions(file, "import");
+    List<ScarpetFunction> funcs = ParseScarpet.FindFunctions(file.text, "import");
 
-    // Loop through the list backwards so nothing will affect anything that happens after it
-    for (int i = funcs.Count-1; i >= 0; i--) {
-      // If no variables to import were included, import everything
-      if (funcs[i].args.Length == 1) {
-        newFile = includeFile(newFile, funcs[i]);
-      } else {
-        // Just import the variables that were included, and do tree shaking, will do later
-      }
+    for (int i = 0; i < funcs.Count; i++) {
+      funcs[i].startPos -= moveBackwards;
+      funcs[i].endPos -= moveBackwards;
+      newFile = includeFile(newFile, funcs[i]);
+      moveBackwards += funcs[i].endPos-funcs[i].startPos;
     }
 
     return newFile;
@@ -29,15 +27,20 @@ class ParseFile {
     return str.Take(pos).Count(c => c == '\n') + 1;
   }
 
-  string includeFile(string file, ScarpetFunction f) {
+  Script includeFile(Script file, ScarpetFunction f) {
     string filePath = f.args[0].Substring(1, f.args[0].Length-2);
+
+    if (filePath == "./example/formatType.sc") {
+
+    }
 
     // Add the imported file to the list to prevent circular dependencies from crashing the program
     if (!imported.Contains(filePath)) {
       imported.Add(filePath);
     } else {
       Console.WriteLine("Warning: Ignoring circular dependency "+f.args[0]);
-      return file.Remove(f.startPos, f.endPos-f.startPos);
+      file.text = file.text.Remove(f.startPos, f.endPos-f.startPos);
+      return file;
     }
 
     string importedFile = "";
@@ -56,7 +59,7 @@ class ParseFile {
     } catch {
       // Check if the imported file exists
       if (!File.Exists(filePath)) {
-        Console.WriteLine("File '"+filePath+"' doesn't exist  Line "+LineNumber(file, f.startPos));
+        Console.WriteLine("File '"+filePath+"' doesn't exist  Line "+LineNumber(file.text, f.startPos));
         System.Environment.Exit(0);
       }
 
@@ -67,10 +70,34 @@ class ParseFile {
       }
     }
 
+    ImportedScript importedScript = new ImportedScript();
+    importedScript.file.text = importedFile;
+
+    int dotPos = filePath.LastIndexOf(".");
+    importedScript.file.type = new string(filePath.Skip(dotPos).ToArray());
+
     // Recursively parse the file's imports
-    importedFile = ParseImports(importedFile);
+    importedScript.file = ParseImports(importedScript.file);
+
+    importedScript.position = f.startPos;
+
+    if (f.args.Length == 1) {
+      // Include all the lines
+      int lines = LineNumber(importedScript.file.text, importedScript.file.text.Length-1);
+      for (int i = 0; i < lines; i++) {
+        importedScript.includedLines.Add(i);
+      }
+      Console.WriteLine(filePath);
+      Console.WriteLine(importedScript.includedLines.Count);
+    } else {
+      // Tree shaking, will do later
+    }
+
+    // Add the imported script to the list
+    file.importedFiles.Add(importedScript);
     
-    // Replace the import statement with what was read
-    return file.Remove(f.startPos, f.endPos-f.startPos).Insert(f.startPos, importedFile);
+    // Remove the import statement
+    file.text = file.text.Remove(f.startPos, f.endPos-f.startPos);
+    return file;
   }
 }
