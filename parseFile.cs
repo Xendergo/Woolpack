@@ -87,10 +87,23 @@ class ParseFile {
       for (int i = 0; i < lines; i++) {
         importedScript.includedLines.Add(i);
       }
-      Console.WriteLine(filePath);
-      Console.WriteLine(importedScript.includedLines.Count);
     } else {
-      // Tree shaking, will do later
+      for (int i = 1; i < f.args.Length; i++) {
+        if (f.args[i][0] == '\'') {
+          // Tree shaking
+
+          string symbol = f.args[i].Substring(1, f.args[i].Length-2);
+
+          // Filter by amount of parentheses = 0 to find only definitions in the global scope
+          List<int> definitions = ParseScarpet.FindDefinitions(importedScript.file.text, symbol).Where(x => ParseScarpet.parenthesesAmt(importedScript.file.text, x) == 0).ToList();
+        
+          for (int j = 0; j < definitions.Count; j++) {
+            importedScript.includedLines.Add(ParseScarpet.LineNumber(importedScript.file.text, definitions[j])-1);
+          }
+        } else {
+          // Import individual lines, will do later
+        }
+      }
     }
 
     // Add the imported script to the list
