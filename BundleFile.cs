@@ -45,10 +45,8 @@ class BundleFile {
 
     // Wait for the file to be available for writing
     while (!IsFileReady(config.write_location) && File.Exists(config.write_location)) ;
-    using (StreamWriter sw = new StreamWriter(config.write_location)) {
-      Console.WriteLine("Writing");
-      sw.Write(toWrite.ToStringy(new List<int> {-1})); // Write the file
-    }
+    Console.WriteLine("Writing");
+    File.WriteAllText(config.write_location, toWrite.ToStringy(new List<int> {-1}));
   }
 
   // https://stackoverflow.com/questions/1406808/wait-for-file-to-be-freed-by-process
@@ -57,13 +55,18 @@ class BundleFile {
     // is no longer locked by another process.
     try
     {
-        using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
-            return inputStream.Length > 0;
+      using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
+        return inputStream.Length > 0;
     }
-    catch (Exception)
-    {
-        return false;
+    catch (System.UnauthorizedAccessException) {
+      Console.WriteLine("Couldn't access the file '"+filename+"' due to insufficient permissions, are you trying to write to a folder instead of a file?");
+      System.Environment.Exit(0);
     }
+    catch {
+      return false;
+    }
+
+    return false;
   }
 }
 
