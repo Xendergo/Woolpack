@@ -89,19 +89,45 @@ class ParseFile {
       }
     } else {
       for (int i = 1; i < f.args.Length; i++) {
+        string text = importedScript.file.text;
         if (f.args[i][0] == '\'') {
           // Tree shaking
 
           string symbol = f.args[i].Substring(1, f.args[i].Length-2);
 
           // Filter by amount of parentheses = 0 to find only definitions in the global scope
-          List<int> definitions = ParseScarpet.FindDefinitions(importedScript.file.text, symbol).Where(x => ParseScarpet.parenthesesAmt(importedScript.file.text, x) == 0).ToList();
+          List<int> definitions = ParseScarpet.FindDefinitions(text, symbol).Where(x => ParseScarpet.parenthesesAmt(text, x) == 0).ToList();
         
           for (int j = 0; j < definitions.Count; j++) {
-            importedScript.includedLines.Add(ParseScarpet.LineNumber(importedScript.file.text, definitions[j])-1);
+            importedScript.includedLines.Add(ParseScarpet.LineNumber(text, definitions[j])-1);
           }
         } else {
           // Import individual lines, will do later
+        }
+        
+        // Keep track of the lines that got added so only they get dealt with
+        List<int> stuffChanged = importedScript.includedLines;
+        HashSet<string> symbolsIncluded = new HashSet<string>();
+        for (int j = 0; j < stuffChanged.Count; j++) {
+          symbolsIncluded.UnionWith(ParseScarpet.FindSymbolsDefined(ParseScarpet.getLine(text, stuffChanged[j]-1)));
+        }
+
+        while (stuffChanged.Count > 0) {
+          // Add lines to allow parentheses to close
+          for (int j = 0; j < stuffChanged.Count; j++) {
+            if (!importedScript.includedLines.Contains(stuffChanged[j]+1) && (ParseScarpet.parenthesesAmt(text, ParseScarpet.indexFromLine(text, stuffChanged[j])) != 0 || ParseScarpet.parenthesesAmt(text, ParseScarpet.indexEndFromLine(text, stuffChanged[j])) != 0)) {
+              importedScript.includedLines.Add(stuffChanged[j]+1);
+              stuffChanged.Add(stuffChanged[j]+1);
+            }
+          }
+
+          List<int> nextStuffChanged = new List<int>();
+
+          for (int j = 0; j < stuffChanged.Count; j++) {
+            symbolsIncluded.UnionWith(ParseScarpet.FindSymbolsDefined(ParseScarpet.getLine(text, stuffChanged[j])));
+          }
+
+          stuffChanged = nextStuffChanged;
         }
       }
     }

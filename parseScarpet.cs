@@ -1,7 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
+using System;
 
 class ParseScarpet {
+  static char[] specials = new char[] {'(', ')', ':', ';', ' ', '\n', '~', '\'', ',', '\t'};
+  static char[] selectors = new char[] {':', '~'};
   public static List<ScarpetFunction> FindFunctions(string file, string name) {
     List<ScarpetFunction> ret = new List<ScarpetFunction>();
     // Find all instances of the function being called
@@ -105,9 +108,114 @@ class ParseScarpet {
     return SearchString(file, symbol).Where(x => !CommentedOut(file, comments, x) && IsDefinition(file, x, symbol.Length)).ToList();
   }
 
+  public static HashSet<string> FindSymbolsDefined(string line) {
+    List<int> equalSigns = SearchString(line, "=");
+
+    HashSet<string> symbols = new HashSet<string>();
+
+    for (int i = 0; i < equalSigns.Count; i++) {
+      // filter out '==', '!=' '>=', '<=', '+=', '-='
+      if (line[equalSigns[i]-1] == '=' || line[equalSigns[i]-1] == '!' || line[equalSigns[i]-1] == '>' || line[equalSigns[i]-1] == '<' || line[equalSigns[i]-1] == '+' || line[equalSigns[i]-1] == '-' || line[equalSigns[i]+1] == '=') continue;
+
+      int pos = equalSigns[i]-1;
+
+      // Get rid of the spaces
+      while (line[pos] == ' ') {
+        pos--;
+      }
+
+      // Read out the symbol
+      string symbol = "";
+      while (!specials.Contains(line[pos])) {
+        symbol = line[pos] + symbol;
+        pos--;
+      }
+
+      // Get rid of more spaces
+      while (line[pos] == ' ') {
+        pos--;
+      }
+
+      // If this is actually a situation like `v: x = c` then skip this symbol
+      if (selectors.Contains(line[pos])) continue;
+
+      symbols.Add(symbol);
+    }
+
+    List<int> functions = SearchString(line, "->");
+
+    for (int i = 0; i < functions.Count; i++) {
+      int pos = functions[i] - 1;
+
+      // Remove spaces
+      while (line[pos] == ' ') {
+        pos--;
+      }
+
+      // Remove ')'
+      pos--;
+
+      while (line[pos] != '(') {
+        string symbol = "";
+
+        // If this is closing an expression, it's either a syntax error or an outer function, and should be ignored either way
+        if (line[pos] == ')') {
+          pos--;
+          int parenthesesValue = parenthesesAmt(line, pos);
+          // Get rid of whatever's in the parentheses
+          while (parenthesesAmt(line, pos) >= parenthesesValue) {
+            pos--;
+          }
+
+          // Get rid of stuff until it's the next symbol or the arguments have ended
+          while (line[pos] != ',' || line[pos] != '(') {
+            pos--;
+          }
+        } else {
+          // Add the symbol
+          while (line[pos] != ' ' && line[pos] != ',' && line[pos] != '(') {
+            symbol = line[pos] + symbol;
+            pos--;
+          }
+        }
+
+        if (symbol != "") {
+          symbols.Add(symbol);
+        }
+      }
+    }
+
+    return symbols;
+  }
+
   public static int LineNumber(string str, int pos) {
     // https://stackoverflow.com/questions/7255743/what-is-simpliest-way-to-get-line-number-from-char-position-in-string
     return str.Take(pos).Count(c => c == '\n') + 1;
+  }
+  public static int indexFromLine(string str, int line) {
+    int amt = line;
+    int i = 0;
+    while (amt > 0) {
+      i++;
+      if (str[i] == '\n') amt--;
+    }
+
+    return i;
+  }
+
+  public static int indexEndFromLine(string str, int line) {
+    int amt = line + 1;
+    int i = 0;
+    while (amt > 0) {
+      i++;
+      if (str[i] == '\n') amt--;
+    }
+
+    return i - 1;
+  }
+
+  public static string getLine(string str, int line) {
+    return new string(str.Skip(indexFromLine(str, line)+1).TakeWhile(x => x != '\n').ToArray());
   }
 
   static List<int> SearchString(string str, string searchFor) {
