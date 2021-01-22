@@ -4,13 +4,13 @@ A program like [Webpack](https://webpack.js.org/) or [Rollup](https://rollupjs.o
 ## Features
 The idea is that you can write scarpet in multiple files for nicer code and distribute it as one file so people won't have to download lots of files.
 
-You can use the import function to essentially copy/paste code from one file to another. Circular dependencies are ignored. Unlike in native scarpet, the import function must be a file path. You can also import stuff by giving an address to a website. Importing individual symbols is not supported *yet*, and an import function with multiple arguments given will be ignored
+You can use the import function to essentially copy/paste code from one file to another. Circular dependencies are ignored. Unlike in native scarpet, the import function must be a file path. You can also import stuff by giving an address to a website. Importing individual symbols is a bit glitchy, but should be fine if you don't use weird syntax. Feel free to report bugs with it, or anything for that matter
 
 Examples:
 
 `import('./debug.sc');`
 
-`import('https://raw.githubusercontent.com/gnembon/scarpet/master/programs/fundamentals/math.sc');`
+`import('https://raw.githubusercontent.com/gnembon/scarpet/master/programs/fundamentals/math.sc', 'hex');`
 
 I am planing to add a bunch more in the future, so yeah
 

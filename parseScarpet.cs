@@ -127,7 +127,7 @@ class ParseScarpet {
 
       // Read out the symbol
       string symbol = "";
-      while (!specials.Contains(line[pos])) {
+      while (pos > 0 && !specials.Contains(line[pos])) {
         symbol = line[pos] + symbol;
         pos--;
       }
