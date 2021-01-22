@@ -90,8 +90,8 @@ class ParseFile {
     } else {
       for (int i = 1; i < f.args.Length; i++) {
         string text = importedScript.file.text;
+        // Tree shaking
         if (f.args[i][0] == '\'') {
-          // Tree shaking
 
           string symbol = f.args[i].Substring(1, f.args[i].Length-2);
 
@@ -109,7 +109,9 @@ class ParseFile {
         List<int> stuffChanged = importedScript.includedLines;
         HashSet<string> symbolsIncluded = new HashSet<string>();
         for (int j = 0; j < stuffChanged.Count; j++) {
-          symbolsIncluded.UnionWith(ParseScarpet.FindSymbolsDefined(ParseScarpet.getLine(text, stuffChanged[j]-1)));
+          string line = ParseScarpet.getLine(text, stuffChanged[j]-1);
+          symbolsIncluded.UnionWith(ParseScarpet.FindSymbolsDefined(line));
+          ParseScarpet.SymbolsReferenced(line).ExceptWith(symbolsIncluded);
         }
 
         while (stuffChanged.Count > 0) {
@@ -124,8 +126,24 @@ class ParseFile {
           List<int> nextStuffChanged = new List<int>();
 
           for (int j = 0; j < stuffChanged.Count; j++) {
-            symbolsIncluded.UnionWith(ParseScarpet.FindSymbolsDefined(ParseScarpet.getLine(text, stuffChanged[j])));
+            string line = ParseScarpet.getLine(text, stuffChanged[j]);
+            // Find the symbols that were newly defined
+            symbolsIncluded.UnionWith(ParseScarpet.FindSymbolsDefined(line));
+            // Find the symbols referenced that aren't already defined
+            HashSet<string> newSymbols = ParseScarpet.SymbolsReferenced(line);
+            newSymbols.ExceptWith(symbolsIncluded);
+
+            foreach (string symbol in newSymbols) {
+              // Filter by amount of parentheses = 0 to find only definitions in the global scope
+              List<int> definitions = ParseScarpet.FindDefinitions(text, symbol).Where(x => ParseScarpet.parenthesesAmt(text, x) == 0).ToList();
+            
+              for (int k = 0; k < definitions.Count; k++) {
+                nextStuffChanged.Add(ParseScarpet.LineNumber(text, definitions[k])-1);
+              }
+            }
           }
+
+          importedScript.includedLines.AddRange(nextStuffChanged);
 
           stuffChanged = nextStuffChanged;
         }

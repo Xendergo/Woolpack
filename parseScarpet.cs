@@ -3,8 +3,9 @@ using System.Linq;
 using System;
 
 class ParseScarpet {
-  static char[] specials = new char[] {'(', ')', ':', ';', ' ', '\n', '~', '\'', ',', '\t'};
+  static char[] specials = new char[] {'(', ')', ':', ';', ' ', '\n', '~', '\'', ',', '\t', '=', '~', '{', '}', '[', ']', '+', '-', '>', '<', '%', '*', '/', '^', '&', '|'};
   static char[] selectors = new char[] {':', '~'};
+  static char[] nums = new char[] {'0', '1', '2', '3', '4', '5', '6', '7', '8', '9'};
   public static List<ScarpetFunction> FindFunctions(string file, string name) {
     List<ScarpetFunction> ret = new List<ScarpetFunction>();
     // Find all instances of the function being called
@@ -152,6 +153,9 @@ class ParseScarpet {
         pos--;
       }
 
+      // If the position isn't ')', then that means it must be a map instead of a function definition
+      if (line[pos] != ')') continue;
+
       // Remove ')'
       pos--;
 
@@ -183,6 +187,86 @@ class ParseScarpet {
           symbols.Add(symbol);
         }
       }
+    }
+
+    return symbols;
+  }
+
+  public static HashSet<string> SymbolsReferenced(string line) {
+    int pos = 0;
+    HashSet<string> symbols = new HashSet<string>();
+
+    int commentPos = line.IndexOf("//");
+    if (commentPos != -1) {
+      line = line.Substring(0, commentPos);
+    }
+
+    while (pos < line.Length) {
+      // Remove special characters
+      while (pos < line.Length && specials.Contains(line[pos])) {
+        pos++;
+      }
+
+      if (pos == line.Length) continue;
+
+      // If it starts out as a number or ', it can't be a valid variable name, so skip
+      if (nums.Contains(line[pos]) || line[pos] == '\'') {
+        while (!specials.Contains(line[pos])) {
+          pos++;
+        }
+
+        continue;
+      }
+
+      string symbol = "";
+
+      // Add the symbol to the list
+      while (pos < line.Length && !specials.Contains(line[pos])) {
+        symbol += line[pos];
+        pos++;
+      }
+
+      // Remove spaces
+      while (pos < line.Length && line[pos] == ' ') {
+        pos++;
+      }
+
+      // If the symbol is being defined using '=' or '->', skip it
+      if (pos < line.Length && (line[pos] == '=' || (line[pos] == '-' && line[pos] == '>'))) continue;
+
+      // Check if it's a function definition or function call
+      if (pos < line.Length && line[pos] == '(') {
+        // Copy the pos so we can skip ahead and check for '->'
+        int posC = pos;
+
+        int parenthesesValue = parenthesesAmt(line, posC);
+        posC++;
+        // Skip to the end of the parentheses
+        while (posC < line.Length && parenthesesValue < parenthesesAmt(line, posC)) {
+          posC++;
+        }
+
+        try {
+          // Remove spaces
+          while (line[posC] == ' ') {
+            posC++;
+          }
+
+          // Check for '->', and if it is, skip the function arguments
+          if (line[posC] == '-' && line[posC+1] == '>') {
+            pos = posC;
+            continue;
+          }
+        } catch {}
+      }
+
+      symbols.Add(symbol);
+    }
+
+    // Deal with outer(), which would be skipped normally
+    List<ScarpetFunction> outer = FindFunctions(line, "outer");
+    foreach (ScarpetFunction o in outer) {
+      symbols.UnionWith(o.args.ToHashSet());
     }
 
     return symbols;
