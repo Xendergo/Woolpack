@@ -111,7 +111,19 @@ class ParseFile {
             importedScript.includedLines.Add(ParseScarpet.LineNumber(text, definitions[j])-1);
           }
         } else {
-          // Import individual lines, will do later
+          // Look for the dash
+          int dash = f.args[i].IndexOf('-');
+
+          if (dash == -1) {
+            importedScript.includedLines.Add(int.Parse(f.args[i])-1);
+          } else {
+            int min = int.Parse(new string(f.args[i].Take(dash).ToArray()))-1;
+            int max = int.Parse(new string(f.args[i].Skip(dash+1).ToArray()));
+
+            for (int j = min; j < max; j++) {
+              importedScript.includedLines.Add(j);
+            }
+          }
         }
         
         // Keep track of the lines that got added so only they get dealt with

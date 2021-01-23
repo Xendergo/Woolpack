@@ -162,6 +162,11 @@ class ParseScarpet {
       while (line[pos] != '(') {
         string symbol = "";
 
+        // Remove spaces & commas
+        while (line[pos] == ' ' || line[pos] == ',') {
+          pos--;
+        }
+
         // If this is closing an expression, it's either a syntax error or an outer function, and should be ignored either way
         if (line[pos] == ')') {
           pos--;
