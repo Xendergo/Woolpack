@@ -28,6 +28,8 @@ class BundleFile {
   public void update() {
     Console.WriteLine("Bundling scarpet scripts");
 
+    ParseFile.config = config;
+
     ParseFile.imported = new List<string>() {config.entry};
 
     Script toWrite = new Script();

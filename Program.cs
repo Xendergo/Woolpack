@@ -9,6 +9,7 @@ namespace Woolpack
         public string write_location = "";
         public string entry = "";
         public string autoreload = "";
+        public bool cache_web_files = true;
     }
 
     class Program

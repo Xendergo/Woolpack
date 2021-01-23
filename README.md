@@ -22,7 +22,9 @@ In the folder you want to write scarpet in, create a file named `woolpack_config
 
 `write_location`: Where the bundled file should be written
 
-`autoreload`: Sets a folder the program will watch. When a file in the folder changes, it will re-bundle the code
+`autoreload`: Sets a folder the program will watch. When a file in the folder changes, it will re-bundle the code. If not included, the program will bundle the code and exit.
+
+`cache_web_files`: Caches files imported from the web to reduce network requests and improve speed, defaults to `true`
 
 Note: `entry` and `write_location` are required, everything else is optional
 
@@ -31,7 +33,8 @@ Example `woolpack_config.json`:
 {
   "entry": "test.sc",
   "write_location": "C:/.../.minecraft/saves/your_world/scripts/test.sc",
-  "autoreload": "./"
+  "autoreload": "./",
+  "cache_web_files": false
 }
 ```
 

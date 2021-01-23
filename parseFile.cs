@@ -3,8 +3,11 @@ using System;
 using System.Net;
 using System.IO;
 using System.Linq;
+using Woolpack;
 
 class ParseFile {
+  public Config config;
+  Dictionary<string, string> cachedWebFiles = new Dictionary<string, string>();
   public List<string> imported = new List<string>();
   public Script ParseImports(Script file) {
     int moveBackwards = 0;
@@ -47,14 +50,20 @@ class ParseFile {
 
     // If it's not a valid url, it will catch and read it as a file
     try {
-      // https://stackoverflow.com/questions/27108264/how-to-properly-make-a-http-web-get-request
-      HttpWebRequest request = (HttpWebRequest)WebRequest.Create(filePath);
-      request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
-      using(HttpWebResponse response = (HttpWebResponse)request.GetResponse())
-      using(Stream stream = response.GetResponseStream())
-      using(StreamReader reader = new StreamReader(stream))
-      {
+      if (!config.cache_web_files || !cachedWebFiles.ContainsKey(filePath)) {
+        // https://stackoverflow.com/questions/27108264/how-to-properly-make-a-http-web-get-request
+        HttpWebRequest request = (HttpWebRequest)WebRequest.Create(filePath);
+        request.AutomaticDecompression = DecompressionMethods.GZip | DecompressionMethods.Deflate;
+        using(HttpWebResponse response = (HttpWebResponse)request.GetResponse())
+        using(Stream stream = response.GetResponseStream())
+        using(StreamReader reader = new StreamReader(stream))
+        {
           importedFile = reader.ReadToEnd();
+        }
+
+        cachedWebFiles[filePath] = importedFile;
+      } else {
+        importedFile = cachedWebFiles[filePath];
       }
     } catch {
       // Check if the imported file exists
