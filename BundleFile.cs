@@ -58,7 +58,7 @@ class BundleFile {
     try
     {
       using (FileStream inputStream = File.Open(filename, FileMode.Open, FileAccess.Read, FileShare.None))
-        return inputStream.Length > 0;
+        return true;
     }
     catch (System.UnauthorizedAccessException) {
       Console.WriteLine("Couldn't access the file '"+filename+"' due to insufficient permissions, are you trying to write to a folder instead of a file?");
