@@ -83,7 +83,7 @@ class Script {
     // The zeroth index tells the line number, the first tells whether it's a line (1) or a file to stringify (0), the second tells the index in the importedFiles array (if applicable)
     List<int[]> things = new List<int[]>();
     for (int i = 0; i < importedFiles.Count; i++) {
-      things.Add(new int[] {importedFiles[i].position, 0, i});
+      things.Add(new int[] {ParseScarpet.LineNumber(text, importedFiles[i].position), 0, i});
     }
     string[] lines = text.Split('\n');
     for (int i = 0; i < lines.Length; i++) {
@@ -98,7 +98,7 @@ class Script {
       if (includedLines[0] != -1 && includedLines.IndexOf(i) == -1) continue; // Skip lines that aren't included
 
       if (things[i][1] == 1) {
-        newText.Add(lines[i]);
+        newText.Add(lines[things[i][0]]);
       } else {
         newText.Add(importedFiles[things[i][2]].file.ToStringy(importedFiles[things[i][2]].includedLines));
       }
