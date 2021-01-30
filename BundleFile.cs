@@ -16,6 +16,8 @@ class BundleFile {
 
         watcher.NotifyFilter = NotifyFilters.LastWrite;
 
+        watcher.IncludeSubdirectories = true;
+
         watcher.Changed += (a, b) => {update();};
 
         watcher.EnableRaisingEvents = true;
