@@ -87,7 +87,7 @@ class Script {
     }
     string[] lines = text.Split('\n');
     for (int i = 0; i < lines.Length; i++) {
-      if (importedFiles.FindIndex(x => x.position == i) == -1) {
+      if (things.FindIndex(x => x[0] == i) == -1) {
         things.Add(new int[] {i, 1});
       }
     }
